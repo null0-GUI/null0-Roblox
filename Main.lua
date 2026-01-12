@@ -1,4 +1,4 @@
--- [[ null0 FE - Layout & John Doe Final Patch ]]
+-- [[ null0 FE - Rebuilt & Strictly Ordered ]]
 local player = game:GetService("Players").LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -9,11 +9,11 @@ local Debris = game:GetService("Debris")
 
 -- 1. ROOT SETUP
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "null0_Final"
+screenGui.Name = "null0_FE"
 screenGui.Parent = (RunService:IsStudio() and player.PlayerGui or CoreGui)
 screenGui.ResetOnSpawn = false
 
--- DRAGGABLE LOGIC
+-- Draggable Logic
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
     frame.InputBegan:Connect(function(input)
@@ -34,122 +34,140 @@ end
 
 -- 2. MAIN HOLDER
 local mainHolder = Instance.new("Frame", screenGui)
+mainHolder.Name = "MainHolder"
 mainHolder.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 mainHolder.BackgroundTransparency = 0.2
 mainHolder.Size = UDim2.fromScale(0.45, 0.55)
 mainHolder.Position = UDim2.fromScale(0.5, 0.5)
 mainHolder.AnchorPoint = Vector2.new(0.5, 0.5)
+mainHolder.BorderSizePixel = 0
 makeDraggable(mainHolder)
 
--- 3. AESTHETICS & TABS
-local asethetics = Instance.new("Folder", mainHolder)
-asethetics.Name = "Asethetics"
-
+-- 3. TABS (Hierarchy: MainHolder > Tabs)
 local tabs = Instance.new("Frame", mainHolder)
 tabs.Name = "Tabs"
 tabs.Size = UDim2.fromScale(1, 0.15)
 tabs.BackgroundTransparency = 1
 
 local title = Instance.new("TextLabel", tabs)
+title.Name = "Title"
 title.Text = "Built in Buttons"
-title.Size = UDim2.fromScale(1, 1)
+title.Size = UDim2.fromScale(0.6, 0.8)
+title.Position = UDim2.fromScale(0.5, 0.5)
+title.AnchorPoint = Vector2.new(0.5, 0.5)
 title.BackgroundTransparency = 1
 title.TextColor3 = Color3.new(1, 1, 1)
 title.TextScaled = true
 title.Font = Enum.Font.SourceSansBold
 
--- 4. BUTTON HOLDER (FIXED LAYOUT ORDER)
+-- 4. BUTTON HOLDER (Strict Grid)
 local buttonHolder = Instance.new("ScrollingFrame", mainHolder)
 buttonHolder.Name = "ButtonHolder"
-buttonHolder.Size = UDim2.fromScale(0.95, 0.75)
-buttonHolder.Position = UDim2.fromScale(0.025, 0.2)
+buttonHolder.Size = UDim2.fromScale(0.9, 0.75)
+buttonHolder.Position = UDim2.fromScale(0.05, 0.2)
 buttonHolder.BackgroundTransparency = 1
 buttonHolder.ScrollBarThickness = 0
-buttonHolder.CanvasSize = UDim2.new(0,0,0,0)
 buttonHolder.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
 local layout = Instance.new("UIGridLayout", buttonHolder)
 layout.CellPadding = UDim2.new(0, 10, 0, 10)
-layout.CellSize = UDim2.new(0, 85, 0, 40)
-layout.SortOrder = Enum.SortOrder.LayoutOrder -- ENSURES BUTTONS FOLLOW THE NUMBERS BELOW
+layout.CellSize = UDim2.new(0, 77, 0, 38)
+layout.SortOrder = Enum.SortOrder.LayoutOrder -- FORCES THE ORDER
 
+-- 5. FUNCTIONAL ADD MENU (The + Button Fix)
+local addMenu = Instance.new("Frame", screenGui)
+addMenu.Name = "AddMenu"
+addMenu.Size = UDim2.fromScale(0.3, 0.3)
+addMenu.Position = UDim2.fromScale(0.5, 0.5)
+addMenu.AnchorPoint = Vector2.new(0.5, 0.5)
+addMenu.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+addMenu.Visible = false
+makeDraggable(addMenu)
+
+local nameBox = Instance.new("TextBox", addMenu)
+nameBox.PlaceholderText = "Button Name"
+nameBox.Size = UDim2.new(0.8, 0, 0, 30)
+nameBox.Position = UDim2.new(0.1, 0, 0.2, 0)
+
+local scriptBox = Instance.new("TextBox", addMenu)
+scriptBox.PlaceholderText = "Loadstring URL"
+scriptBox.Size = UDim2.new(0.8, 0, 0, 30)
+scriptBox.Position = UDim2.new(0.1, 0, 0.5, 0)
+
+-- 6. BUTTON FACTORY
 local function createBtn(name, color, order, callback)
     local btn = Instance.new("TextButton", buttonHolder)
     btn.Name = name
     btn.Text = name
     btn.BackgroundColor3 = color
     btn.TextColor3 = (color == Color3.new(0,0,0)) and Color3.new(1,1,1) or Color3.new(0,0,0)
-    btn.LayoutOrder = order -- THIS FIXES THE FLIPPED LAYOUT
+    btn.LayoutOrder = order
     btn.BorderSizePixel = 0
     btn.TextScaled = true
     btn.Font = Enum.Font.SourceSansBold
     btn.MouseButton1Click:Connect(callback)
 end
 
--- 5. BUTTON LIST (ORDERED AS REQUESTED)
-createBtn("+", Color3.new(0,0,0), 1, function() print("Add") end)
-createBtn("Fly", Color3.new(0,0,0), 2, function() print("Fly") end)
+local addBtnOrder = 10 -- Start custom buttons at 10
+
+local createFinal = Instance.new("TextButton", addMenu)
+createFinal.Text = "Create Button"
+createFinal.Size = UDim2.new(0.6, 0, 0, 30)
+createFinal.Position = UDim2.new(0.2, 0, 0.8, 0)
+createFinal.MouseButton1Click:Connect(function()
+    if nameBox.Text ~= "" and scriptBox.Text ~= "" then
+        createBtn(nameBox.Text, Color3.new(0,0,0), addBtnOrder, function()
+            loadstring(game:HttpGet(scriptBox.Text))()
+        end)
+        addBtnOrder = addBtnOrder + 1
+        addMenu.Visible = false
+    end
+end)
+
+-- 7. DEFAULT BUTTONS (ORDERED)
+createBtn("+", Color3.new(0,0,0), 1, function() addMenu.Visible = not addMenu.Visible end)
+
+createBtn("Fly", Color3.new(0,0,0), 2, function()
+    -- Patched Fly Logic (Still not ready yet!
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/null0-GUI/null0-Roblox/refs/heads/main/Fly.lua"))()
+end)
+
 createBtn("Inf-Jump", Color3.new(0,0,0), 3, function() 
     UserInputService.JumpRequest:Connect(function()
         player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
     end)
 end)
+
 createBtn("Fling-GUI", Color3.new(0,0,0), 4, function() 
     loadstring(game:HttpGet("https://raw.githubusercontent.com/null0-GUI/null0-Roblox/refs/heads/main/Main.lua"))()
 end)
 
--- FULLY PATCHED JOHN DOE
+-- PATCHED JOHN DOE (Inspired by c00lClan)
 createBtn("John Doe", Color3.fromRGB(248, 217, 109), 5, function()
-    -- Skybox Patch
-    local sky = Lighting:FindFirstChildOfClass("Sky") or Instance.new("Sky", Lighting)
-    sky.SkyboxBk = "rbxassetid://1012887"
-    sky.SkyboxDn = "rbxassetid://1012887"
-    sky.SkyboxFt = "rbxassetid://1012887"
-    sky.SkyboxLf = "rbxassetid://1012887"
-    sky.SkyboxRt = "rbxassetid://1012887"
-    sky.SkyboxUp = "rbxassetid://1012887"
-
-    -- Character Logic Setup
-    local function applyJohnDoe(char)
-        local head = char:WaitForChild("Head")
-        local hrp = char:WaitForChild("HumanoidRootPart")
-
-        -- Name Tag Shaker
-        local bgui = Instance.new("BillboardGui", char)
-        bgui.Size = UDim2.new(0, 150, 0, 50)
-        bgui.StudsOffset = Vector3.new(0, 3, 0)
-        bgui.Adornee = head
+    pcall(function()
+        -- Atmosphere
+        local sky = Lighting:FindFirstChildOfClass("Sky") or Instance.new("Sky", Lighting)
+        sky.SkyboxBk, sky.SkyboxDn, sky.SkyboxFt = "rbxassetid://1012887", "rbxassetid://1012887", "rbxassetid://1012887"
         
-        local label = Instance.new("TextLabel", bgui)
-        label.BackgroundTransparency = 1
-        label.Size = UDim2.new(1, 0, 1, 0)
-        label.Font = Enum.Font.Fantasy
-        label.TextColor3 = Color3.new(0,0,0)
-        label.TextStrokeTransparency = 0
-        label.TextScaled = true
+        -- Sound
+        local s = Instance.new("Sound", SoundService)
+        s.SoundId = "rbxassetid://19094700"
+        s.Volume = 1
+        s.Looped = true
+        s:Play()
 
-        task.spawn(function()
-            local phrases = {"ROBLOXIA'S DEATH IS HERE", "YOUR DEAD ASSHOLE", "BURN IN HELL FAGGOT", "NULL"}
-            while char:IsDescendantOf(workspace) do
-                label.Text = phrases[math.random(1, #phrases)]
-                bgui.StudsOffset = Vector3.new(math.random(-1,1), 3 + math.random(-1,1), math.random(-1,1))
-                task.wait(0.2)
-            end
-        end)
-
-        -- Neon Footsteps
-        RunService.Heartbeat:Connect(function()
-            if char:IsDescendantOf(workspace) and hrp.Velocity.Magnitude > 2 then
-                local p = Instance.new("Part", workspace)
-                p.Size = Vector3.new(4, 0.2, 4)
-                p.CFrame = hrp.CFrame * CFrame.new(0, -3, 0)
-                p.Anchored, p.CanCollide = true, false
-                p.Material, p.Color = Enum.Material.Neon, Color3.new(0,0,0)
-                Debris:AddItem(p, 1)
-            end
-        end)
-    end
-
-    if player.Character then applyJohnDoe(player.Character) end
-    player.CharacterAdded:Connect(applyJohnDoe)
+        local char = player.Character
+        if char then
+            -- Neon Black Feet
+            RunService.Heartbeat:Connect(function()
+                if char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart.Velocity.Magnitude > 2 then
+                    local p = Instance.new("Part", workspace)
+                    p.Size, p.Anchored, p.CanCollide = Vector3.new(4,0.2,4), true, false
+                    p.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0,-3,0)
+                    p.Material, p.Color = Enum.Material.Neon, Color3.new(0,0,0)
+                    Debris:AddItem(p, 0.5)
+                end
+            end)
+        end
+    end)
 end)
