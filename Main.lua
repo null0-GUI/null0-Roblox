@@ -37,7 +37,7 @@ local mainHolder = Instance.new("Frame", screenGui)
 mainHolder.Name = "MainHolder"
 mainHolder.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 mainHolder.BackgroundTransparency = 0.2
-mainHolder.Size = UDim2.fromScale(0.409, 0, 0.68, 0)
+mainHolder.Size = UDim2.fromScale(0.45, 0.55)
 mainHolder.Position = UDim2.fromScale(0.5, 0.5)
 mainHolder.AnchorPoint = Vector2.new(0.5, 0.5)
 mainHolder.BorderSizePixel = 2
@@ -63,13 +63,13 @@ null0Title.Parent = aesthetics
 local tabs = Instance.new("Frame", mainHolder)
 tabs.Name = "Tabs"
 tabs.Size = UDim2.new(1, 0, 0.15, 0)
-tabs.BackgroundColor3 = Color3.fromRGB(26, 26, 26) -- Grayed out
+tabs.BackgroundColor3 = Color3.fromRGB(45, 45, 45) -- Grayed out
 tabs.BorderSizePixel = 0
 
 local title = Instance.new("TextLabel", tabs)
 title.Name = "Title"
 title.Text = "Built in Buttons"
-title.Size = UDim2.fromScale(0.392, 0, 1, 0)
+title.Size = UDim2.fromScale(0.5, 0.8)
 title.Position = UDim2.fromScale(0.5, 0.5)
 title.AnchorPoint = Vector2.new(0.5, 0.5)
 title.BackgroundTransparency = 1
@@ -89,7 +89,7 @@ local rightArrow = Instance.new("ImageButton", tabs)
 rightArrow.Name = "RightArrow"
 rightArrow.Size = UDim2.new(0.1, 0, 0.8, 0)
 rightArrow.Position = UDim2.new(0.85, 0, 0.1, 0)
-rightArrow.Image = "rbxassetid://16848361091"
+rightArrow.Image = "rbxassetid://2500573769"
 rightArrow.Rotation = 180
 rightArrow.BackgroundTransparency = 1
 
@@ -103,7 +103,7 @@ buttonHolder.ScrollBarThickness = 0
 buttonHolder.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
 local layout = Instance.new("UIGridLayout", buttonHolder)
-layout.CellPadding = UDim2.new(0, 10, 0, 5)
+layout.CellPadding = UDim2.new(0, 10, 0, 10)
 layout.CellSize = UDim2.new(0, 77, 0, 38)
 layout.SortOrder = Enum.SortOrder.LayoutOrder -- FIXED: Uses LayoutOrder property
 
@@ -176,7 +176,7 @@ end)
 createBtn("John Doe", Color3.fromRGB(248, 217, 109), 5, function()
     -- Atmosphere [cite: 16]
     local sky = Lighting:FindFirstChildOfClass("Sky") or Instance.new("Sky", Lighting)
-    sky.SkyboxBk, sky.SkyboxDn, sky.SkyboxLf, sky.SkyboxRt, sky.SkyboxUp, sky.SkyboxFt = "rbxassetid://1012887", "rbxassetid://1012887", "rbxassetid://1012887"
+    sky.SkyboxBk, sky.SkyboxDn, sky.SkyboxFt = "rbxassetid://1012887", "rbxassetid://1012887", "rbxassetid://1012887"
     
     -- Sound [cite: 17]
     local s = Instance.new("Sound", SoundService)
