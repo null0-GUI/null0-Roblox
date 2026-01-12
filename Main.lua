@@ -1,17 +1,16 @@
--- [[ null0 GUI for Roblox Exploiting ]] --
+-- [[ null0 GUI for Roblox LocalPlayer only (Backdoor scanner coming soon!)]] --
 local player = game:GetService("Players").LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local InsertService = game:GetService("InsertService")
 
--- 1. Root Setup
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "null0"
 screenGui.Parent = (RunService:IsStudio() and player.PlayerGui or CoreGui)
 screenGui.ResetOnSpawn = false
 
--- Helper: Draggable Logic
+-- [[ FIXED DRAGGABLE LOGIC ]]
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
     frame.InputBegan:Connect(function(input)
@@ -30,98 +29,42 @@ local function makeDraggable(frame)
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
-    input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+    -- Fixed the nil index error from the previous version
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+    end)
 end
 
--- 2. Main Window (MainHolder)
-local mainHolder = Instance.new("Frame")
+-- [[ MAIN WINDOW ]]
+local mainHolder = Instance.new("Frame", screenGui)
 mainHolder.Name = "MainHolder"
 mainHolder.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 mainHolder.BackgroundTransparency = 0.2
+mainHolder.BorderSizePixel = 0
 mainHolder.Size = UDim2.fromScale(0.4, 0.5)
 mainHolder.Position = UDim2.fromScale(0.5, 0.5)
 mainHolder.AnchorPoint = Vector2.new(0.5, 0.5)
-mainHolder.BorderSizePixel = 0
-mainHolder.Parent = screenGui
 makeDraggable(mainHolder)
 
--- 3. The Console Window (F9 + 9 Toggle)
-local consoleFrame = Instance.new("Frame")
-consoleFrame.Name = "ConsoleFrame"
-consoleFrame.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
-consoleFrame.BackgroundTransparency = 0.2
-consoleFrame.Size = UDim2.fromScale(0.35, 0.45)
-consoleFrame.Position = UDim2.fromScale(0.1, 0.1) -- Starts at top left
-consoleFrame.BorderSizePixel = 0
-consoleFrame.Visible = false
-consoleFrame.Parent = screenGui
-makeDraggable(consoleFrame)
-
-local logList = Instance.new("ScrollingFrame")
-logList.Name = "LogList"
-logList.Size = UDim2.fromScale(0.95, 0.9)
-logList.Position = UDim2.fromScale(0.025, 0.05)
-logList.BackgroundTransparency = 1
-logList.CanvasSize = UDim2.new(0,0,0,0)
-logList.AutomaticCanvasSize = Enum.AutomaticSize.Y
-logList.ScrollBarThickness = 2
-logList.Parent = consoleFrame
-
-local logLayout = Instance.new("UIListLayout")
-logLayout.Parent = logList
-
--- Function to Log to GUI
-local function logToGui(msg, color)
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 0, 20)
-    label.BackgroundTransparency = 1
-    label.Text = "[" .. os.date("%X") .. "] " .. tostring(msg)
-    label.TextColor3 = color or Color3.new(1,1,1)
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Font = Enum.Font.Code
-    label.TextScaled = true
-    label.Parent = logList
-end
-
--- Intercept Prints
-game:GetService("LogService").MessageOut:Connect(function(msg, msgType)
-    local col = Color3.new(1,1,1)
-    if msgType == Enum.MessageType.MessageWarning then col = Color3.new(1, 0.8, 0)
-    elseif msgType == Enum.MessageType.MessageError then col = Color3.new(1, 0.2, 0) end
-    logToGui(msg, col)
-end)
-
--- 4. Toggle Logic (F9 and 9)
-local f9Pressed = false
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if input.KeyCode == Enum.KeyCode.F9 then f9Pressed = true
-    elseif input.KeyCode == Enum.KeyCode.Nine and f9Pressed then
-        consoleFrame.Visible = not consoleFrame.Visible
-    end
-end)
-UserInputService.InputEnded:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.F9 then f9Pressed = false end
-end)
-
--- 5. Aesthetics & Tabs (Inside MainHolder)
+-- [[ AESTHETICS & TABS ]]
 local asethetics = Instance.new("Folder", mainHolder)
 asethetics.Name = "Asethetics"
 
--- Borders (43x574 look via Aspect Ratio)
+-- Borders (Fixed "Disintegrating" Issue)
 local function createBorder(name, anchorX)
-    local border = Instance.new("Frame")
+    local border = Instance.new("Frame", asethetics)
     border.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    border.BorderSizePixel = 0
     border.Size = UDim2.fromScale(0.08, 1.4)
     border.Position = UDim2.fromScale(anchorX, 0.5)
     border.AnchorPoint = Vector2.new(0.5, 0.5)
-    border.BorderSizePixel = 0
-    border.Parent = asethetics
-    Instance.new("UIAspectRatioConstraint", border).AspectRatio = 43/574
+    local ratio = Instance.new("UIAspectRatioConstraint", border)
+    ratio.AspectRatio = 43/574
 end
 createBorder("LeftBorder", -0.05)
 createBorder("RightBorder", 1.05)
 
--- Tab Header
+-- Tabs Header (Matches image_5af52c.png)
 local tabs = Instance.new("Frame", asethetics)
 tabs.Name = "Tabs"
 tabs.Size = UDim2.fromScale(1, 0.15)
@@ -137,7 +80,19 @@ title.TextColor3 = Color3.new(1, 1, 1)
 title.TextScaled = true
 title.Font = Enum.Font.SourceSansBold
 
--- 6. Buttons
+local function createArrow(img, xPos)
+    local arrow = Instance.new("ImageButton", tabs)
+    arrow.Image = "rbxassetid://" .. img
+    arrow.Size = UDim2.fromScale(0.1, 0.8)
+    arrow.Position = UDim2.fromScale(xPos, 0.5)
+    arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+    arrow.BackgroundTransparency = 1
+    Instance.new("UIAspectRatioConstraint", arrow).AspectRatio = 1
+end
+createArrow("16848361091", 0.1) -- Left
+createArrow("16848361091", 0.9) -- Right
+
+-- [[ BUTTON SYSTEM ]]
 local buttonHolder = Instance.new("ScrollingFrame", mainHolder)
 buttonHolder.Name = "ButtonHolder"
 buttonHolder.Size = UDim2.fromScale(0.9, 0.75)
@@ -158,19 +113,62 @@ local function createBtn(name, color, txtCol, order, callback)
     btn.LayoutOrder = order
     btn.BorderSizePixel = 0
     btn.TextScaled = true
-    Instance.new("UIAspectRatioConstraint", btn).AspectRatio = 77/38
+    Instance.new("UIAspectRatioConstraint", btn).AspectRatio = 77/38 --
     btn.MouseButton1Click:Connect(callback)
 end
 
-createBtn("+", Color3.new(0,0,0), Color3.new(1,1,1), 1, function() print("Add Menu Clicked") end)
-createBtn("Fling-GUI", Color3.new(0,0,0), Color3.new(1,1,1), 2, function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/null0-GUI/null0-Roblox/refs/heads/main/Main.lua"))()
+-- Fixed Button Order
+createBtn("+", Color3.new(0,0,0), Color3.new(1,1,1), 1, function() print("Menu") end)
+createBtn("Inf-Jump", Color3.new(0,0,0), Color3.new(1,1,1), 2, function() print("Jump") end)
+createBtn("Fling-GUI", Color3.new(0,0,0), Color3.new(1,1,1), 3, function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/null0-GUI/null0-Roblox/refs/heads/main/Main.lua?token=GHSAT0AAAAAADTABDZW7LWILHWOAG4JNKC62LEGBBQ"))()
 end)
-
+createBtn("Fly", Color3.new(0,0,0), Color3.new(1,1,1), 4, function() print("Fly") end)
 createBtn("John Doe", Color3.fromRGB(248, 217, 109), Color3.new(0,0,0), 999, function()
     pcall(function()
         local model = InsertService:LoadAsset(21070012)
         local accessory = model:FindFirstChildOfClass("Accessory")
         if accessory then player.Character.Humanoid:AddAccessory(accessory:Clone()) end
     end)
+end)
+
+-- [[ CONSOLE LOG SYSTEM (F9 + 9) ]]
+local consoleFrame = Instance.new("Frame", screenGui)
+consoleFrame.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+consoleFrame.BackgroundTransparency = 0.2
+consoleFrame.Size = UDim2.fromScale(0.35, 0.45)
+consoleFrame.Position = UDim2.fromScale(0.05, 0.05)
+consoleFrame.BorderSizePixel = 0
+consoleFrame.Visible = false
+makeDraggable(consoleFrame)
+
+local logList = Instance.new("ScrollingFrame", consoleFrame)
+logList.Size = UDim2.fromScale(0.95, 0.9)
+logList.Position = UDim2.fromScale(0.025, 0.05)
+logList.BackgroundTransparency = 1
+logList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+logList.CanvasSize = UDim2.new(0,0,0,0)
+logList.ScrollBarThickness = 2
+Instance.new("UIListLayout", logList)
+
+game:GetService("LogService").MessageOut:Connect(function(msg, msgType)
+    local label = Instance.new("TextLabel", logList)
+    label.Size = UDim2.new(1, 0, 0, 18)
+    label.BackgroundTransparency = 1
+    label.Text = "[" .. os.date("%X") .. "] " .. msg
+    label.TextColor3 = (msgType == Enum.MessageType.MessageError and Color3.new(1,0,0)) or Color3.new(1,1,1)
+    label.Font = Enum.Font.Code
+    label.TextScaled = true
+    label.TextXAlignment = Enum.TextXAlignment.Left
+end)
+
+local f9Down = false
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F9 then f9Down = true
+    elseif input.KeyCode == Enum.KeyCode.Nine and f9Down then
+        consoleFrame.Visible = not consoleFrame.Visible
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F9 then f9Down = false end
 end)
